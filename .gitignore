@@ -41,3 +41,26 @@ reports/
 target/
 work/
 
+# JetBrains template
+/.idea/
+/*.iws
+/*.iml
+/*.ipr
+/out/
+/.idea_modules/
+
+# VSCode/Eclipse template
+/.classpath
+/.project
+/.settings
+/bin/
+
+# Gradle template
+.gradle/
+.gradletasknamecache
+build/
+dist/
+distMaven/
+
+# Newt
+/.newt-cache/
