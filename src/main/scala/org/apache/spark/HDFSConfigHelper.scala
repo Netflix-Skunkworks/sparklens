@@ -15,12 +15,15 @@
 * limitations under the License.
 */
 
-package com.qubole.sparklens.helper
+package org.apache.spark
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.SparkConf
 import org.apache.spark.deploy.SparkHadoopUtil
 
+/**
+ * Moved to package org.apache.spark to be Spark 3.0+ compatible.
+ * See https://issues.apache.org/jira/browse/SPARK-26043
+ */
 object HDFSConfigHelper {
 
    def getHadoopConf(sparkConfOptional:Option[SparkConf]): Configuration = {

@@ -21,10 +21,10 @@ import java.net.URI
 
 import com.qubole.sparklens.analyzer._
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
-import com.qubole.sparklens.helper.{EmailReportHelper, HDFSConfigHelper}
+import com.qubole.sparklens.helper.EmailReportHelper
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.SparkConf
+import org.apache.spark.{HDFSConfigHelper, SparkConf}
 import org.apache.spark.scheduler._
 
 import scala.collection.mutable
@@ -257,7 +257,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     if (stageCompleted.stageInfo.failureReason.isDefined) {
       //stage failed
       val si = stageCompleted.stageInfo
-      failedStages += s""" Stage ${si.stageId} attempt ${si.attemptId} in job ${stageIDToJobID(si.stageId)} failed.
+      failedStages += s""" Stage ${si.stageId} attempt ${si.attemptNumber} in job ${stageIDToJobID(si.stageId)} failed.
                       Stage tasks: ${si.numTasks}
                       """
       stageTimeSpan.finalUpdate()

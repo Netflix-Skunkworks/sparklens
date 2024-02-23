@@ -6,10 +6,9 @@ import java.net.URI
 import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.common.Json4sWrapper
-import com.qubole.sparklens.helper.HDFSConfigHelper
 import net.jpountz.lz4.LZ4BlockInputStream
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.SparkConf
+import org.apache.spark.{HDFSConfigHelper, SparkConf}
 import org.json4s.DefaultFormats
 import org.xerial.snappy.SnappyInputStream
 

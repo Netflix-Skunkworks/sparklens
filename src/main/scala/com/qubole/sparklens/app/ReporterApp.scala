@@ -7,10 +7,10 @@ import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.analyzer.AppAnalyzer
 import com.qubole.sparklens.common.{AppContext, Json4sWrapper}
-import com.qubole.sparklens.helper.{EmailReportHelper, HDFSConfigHelper}
+import com.qubole.sparklens.helper.EmailReportHelper
 import net.jpountz.lz4.LZ4BlockInputStream
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.SparkConf
+import org.apache.spark.{HDFSConfigHelper, SparkConf}
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 import org.xerial.snappy.SnappyInputStream
