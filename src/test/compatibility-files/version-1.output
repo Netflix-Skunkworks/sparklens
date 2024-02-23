@@ -1,7 +1,7 @@
-Host localhost startTime 12:59:57:165 executors count 1
-At 12:59 executors added 1 & removed  0 currently available 1
+Host localhost startTime 07:29:57:165 executors count 1
+At 07:29 executors added 1 & removed  0 currently available 1
 [      0                                      ||||||||||||||||||||||||||||||||||||||||   ]
-01:00:03:087      Stage 0 ended : maxTaskTime 30 taskCount 4
+07:30:03:087      Stage 0 ended : maxTaskTime 30 taskCount 4
  Driver WallClock Time    00m 10s   95.17%
  Executor WallClock Time  00m 00s   4.83%
 Minimum possible time for the app based on the critical path (with infinite resources)   00m 10s

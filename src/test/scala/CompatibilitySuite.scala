@@ -1,12 +1,11 @@
 import java.io.{ByteArrayOutputStream, FileNotFoundException, PrintStream}
-
-import com.qubole.sparklens.TestUtils
+import com.qubole.sparklens.{TestUtils, TimezoneSuite}
 import com.qubole.sparklens.app.ReporterApp
 import org.scalatest.FunSuite
 
 import scala.util.control.Breaks._
 
-class CompatibilitySuite extends FunSuite {
+class CompatibilitySuite extends FunSuite with TimezoneSuite {
 
   test("should be able to report on previously generated sparklens dumps") {
 
