@@ -117,12 +117,16 @@ stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparkle
 
 You can also upload a Sparklens JSON data file to http://sparklens.qubole.com to see this report as an HTML page. 
 
-#### 3. Run from Spark event-history file ####
+#### 3. Run from Spark event-history ####
 
-You can also run Sparklens on a previously run spark-app using an event history file, (similar to 
-running via `sparklens-json-file` above) with another option specifying that is file is an 
-event history file. This file can be in any of the formats the event history files supports, i.e. **text, snappy, lz4 
-or lzf**. Note the extra `source=history` parameter in this example:
+You can also run Sparklens on a previously run spark-app using an event history. Note the extra `source=history` parameter in this example:
+
+`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history appId=<app-id>`
+
+And optionally you can also provide the parameter `attemptId=<attempt-id>`
+
+Another option is to directly specify the event history file. This file can be in any of the formats the event history files supports, i.e. **text, snappy, lz4 
+or lzf**. 
 
 `./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
 
