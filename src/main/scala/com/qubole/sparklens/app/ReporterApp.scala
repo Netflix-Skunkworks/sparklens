@@ -1,8 +1,5 @@
 package com.qubole.sparklens.app
 
-import java.io.{BufferedInputStream, InputStream}
-import java.net.URI
-
 import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.analyzer.AppAnalyzer
@@ -10,17 +7,22 @@ import com.qubole.sparklens.common.{AppContext, Json4sWrapper}
 import com.qubole.sparklens.helper.EmailReportHelper
 import net.jpountz.lz4.LZ4BlockInputStream
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.{HDFSConfigHelper, SparkConf}
+import org.apache.spark.deploy.history.EventHistoryReplayer
+import org.apache.spark.{HDFSConfigHelper, SparkConf, SparkContext}
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 import org.xerial.snappy.SnappyInputStream
+
+import java.io.{BufferedInputStream, InputStream}
+import java.net.URI
 
 
 object ReporterApp extends App {
 
   val usage = "Need to specify sparklens data file\n" +
     "Of specify event-history file and also add \"source=history\" or \"source=sparklens\".\n" +
-    "If \"source\" is not specified, sparklens is chosen by default."
+    "If \"source\" is not specified, sparklens is chosen by default." +
+    "If \"source=history\", specify \"appId=your_spark_app_idhistory\" and optionally \"attemptId=1\" if needed."
 
   val conf = new SparkConf()
 
@@ -48,10 +50,16 @@ object ReporterApp extends App {
 
 
   private def parseInput(): Unit = {
-
     getSource match {
       case "sparklens" => reportFromSparklensDump(args(0))
-      case _ => new EventHistoryReporter(args(0)) // event files
+      case _ =>
+        getAppId match {
+          case Some(appId) => // History Provider
+            val sparkConf = SparkContext.getOrCreate().getConf
+            new EventHistoryReplayer(sparkConf, appId, getAttemptId)
+          case _ =>
+            new EventHistoryReporter(args(0)) // event files
+      }
     }
   }
 
@@ -68,6 +76,26 @@ object ReporterApp extends App {
     })
     return "sparklens"
 
+  }
+
+  private def getAppId: Option[String] = {
+    args.foreach(arg => {
+      val splits = arg.split("=")
+      if (splits.size == 2 && "appId".equalsIgnoreCase(splits(0))) {
+          return Option(splits(1))
+      } else None
+    })
+    None
+  }
+
+  private def getAttemptId: Option[String] = {
+    args.foreach(arg => {
+      val splits = arg.split("=")
+      if (splits.size == 2 && "attemptId".equalsIgnoreCase(splits(0))) {
+          return Option(splits(1))
+      }
+    })
+    None
   }
 
   private def reportFromSparklensDump(file: String): Unit = {
