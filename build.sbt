@@ -1,32 +1,34 @@
 name := "sparklens"
+// TBD: Should we change this and publish on our own? Upstream does not seem to be
+// merging PRs.
 organization := "com.qubole"
 
-scalaVersion := "2.11.8"
+val sparkVersion = settingKey[String]("Spark version")
 
-crossScalaVersions := Seq("2.10.6", "2.11.8")
+scalaVersion := "2.12.15"
 
-spName := "qubole/sparklens"
+crossScalaVersions := Seq("2.12.15", "2.13.13")
 
-sparkVersion := "2.0.0"
-
-spAppendScalaVersion := true
-
+sparkVersion := "3.3.4"
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 
-libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
+libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.7.4" % "provided"
 
-libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.6" % "provided"
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.13" % "provided"
 
-libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.6" % "provided"
+libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.13" % "provided"
 
-test in assembly := {}
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test"
+libraryDependencies += "org.junit.platform" % "junit-platform-engine" % "1.6.3" % "test"
+libraryDependencies += "org.junit.platform" % "junit-platform-launcher" % "1.6.3" % "test"
+
 
 testOptions in Test += Tests.Argument("-oF")
 
-scalacOptions ++= Seq("-target:jvm-1.7")
+scalacOptions ++= Seq("-target:jvm-1.8")
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 publishMavenStyle := true
 
@@ -59,4 +61,3 @@ pomExtra :=
       <url>https://github.com/mayurdb</url>
     </developer>
   </developers>
-
