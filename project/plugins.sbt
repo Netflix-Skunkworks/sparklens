@@ -1,9 +1,15 @@
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.12.0")
+resolvers += Resolver.sonatypeRepo("releases")
 
-resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
+addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
 
-addSbtPlugin("org.spark-packages" % "sbt-spark-package" % "0.2.4")
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.1")
 
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 
+addDependencyTreePlugin
 
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
 
+ThisBuild / libraryDependencySchemes ++= Seq(
+  "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
+)
