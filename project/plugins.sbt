@@ -10,6 +10,8 @@ addDependencyTreePlugin
 
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
 
+addSbtPlugin("com.github.xuwei-k" % "unused-code-plugin" % "0.4.0")
+
 ThisBuild / libraryDependencySchemes ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 )
