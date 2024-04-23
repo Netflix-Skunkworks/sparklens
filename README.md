@@ -83,54 +83,29 @@ Spark users can help us in finding what is missing here by raising challenging t
 
 #### 1. Using the Sparklens package while running your app #### 
 
-Note: Apart from the console based report, you can also get an UI based report similar to 
-[this](http://sparklens.qubole.com/report_view/1b3868a49388e7ab6a16) in your email. You have to pass
+You can also get an UI based report in your email. You have to pass
  `--conf spark.sparklens.report.email=<email>` along with other relevant confs mentioned below.
  This functionality is available in Sparklens 0.3.2 and above.  
 
 Use the following arguments to `spark-submit` or `spark-shell`:
 ```
---packages qubole:sparklens:0.3.2-s_2.11
+--jars your_packaged_jar.jar
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
-#### 2. Run from Sparklens offline data ####
-
-You can choose not to run sparklens inside the app, but at a later time. Run your app as above 
-with additional configuration parameters:
-```
---packages qubole:sparklens:0.3.2-s_2.11
---conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
---conf spark.sparklens.reporting.disabled=true
-```
-
-This will not run reporting, but instead create a Sparklens JSON file for the application which is 
-stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparklens/**). Note that this will be stored on HDFS by default. To save this file to s3, please set **spark.sparklens.data.dir** to s3 path. This data file can now be used to run Sparklens reporting independently, using `spark-submit` command as follows:
-
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
-
-`<filename>` should be replaced by the full path of sparklens json file. If the file is on s3 use the full s3 path. For files on local file system, use file:// prefix with the local file location. HDFS is supported as well. 
-
-You can also upload a Sparklens JSON data file to http://sparklens.qubole.com to see this report as an HTML page. 
-
-#### 3. Run from Spark event-history ####
+#### 2. Run from Spark event-history ####
 
 You can also run Sparklens on a previously run spark-app using an event history. Note the extra `source=history` parameter in this example:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history appId=<app-id>`
+`./bin/spark-submit --jars your_packaged_jar.jar --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history appId=<app-id>`
 
 And optionally you can also provide the parameter `attemptId=<attempt-id>`
 
 Another option is to directly specify the event history file. This file can be in any of the formats the event history files supports, i.e. **text, snappy, lz4 
 or lzf**. 
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+`./bin/spark-submit --jars your_packaged_jar.jar --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
 
-It is also possible to convert an event history file to a Sparklens json file using the following command:
-
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
-
-EventHistoryToSparklensJson is designed to work on local file system only. Please make sure that the source and target directories are on local file system.
 
 #### 4. Checkout the code and use the normal sbt commands: #### 
 
