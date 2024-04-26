@@ -81,15 +81,20 @@ class ExecutorTimelineAnalyzer extends  AppAnalyzer {
       if (!isDynamic ||
           appContext.appInfo.startTime != startTime ||
           appContext.appInfo.endTime != endTime) {
+        println(s"Not recommedning anything since cheese $isDynamic ")
+        println(s"          ${appContext.appInfo.startTime} != ${startTime} || ${appContext.appInfo.endTime} != ${endTime})")
         Array.empty[(String, String)]
       } else {
         // A good number of initial execs is probably however main executors were allocated within
         // the first 10 minutes of job & did not exit within that same time period.
         val magicTime = startTime + 600
-        val goodInitialExecs = ac.executorMap.values.filter { execTimeSpan =>
+        val execTimelines = ac.executorMap.values.toList
+        val goodInitialExecs = execTimelines.filter { execTimeSpan =>
+          println(s"Considering $execTimeSpan")
           execTimeSpan.getStartTime < magicTime &&
           (execTimeSpan.getEndTime > magicTime || execTimeSpan.getEndTime > endTime - 600)
         }.size
+        println(s"Good initial execs is $goodInitialExecs from $execTimelines")
         // "fuzzy logic" aka -- don't change if it's close enough.
         if (goodInitialExecs > initialExecs * 1.1 || goodInitialExecs < initialExecs * 0.9) {
           Array(

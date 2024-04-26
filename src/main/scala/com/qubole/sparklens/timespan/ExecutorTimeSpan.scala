@@ -40,4 +40,8 @@ class ExecutorTimeSpan(val executorID: String,
     Map("executorID" -> executorID, "hostID" -> hostID, "cores" -> cores, "executorMetrics" ->
       executorMetrics.getMap()) ++ super.getStartEndTime()
   }
+
+  override def toString() = {
+    getMap().toString()
+  }
 }
