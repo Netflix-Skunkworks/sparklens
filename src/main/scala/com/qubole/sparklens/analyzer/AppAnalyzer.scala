@@ -23,16 +23,29 @@ import com.qubole.sparklens.common.AppContext
 
 import scala.collection.mutable.ListBuffer
 
+import org.apache.spark.SparkConf
+
 /*
  * Interface for creating new Analyzers
  */
 
 trait AppAnalyzer {
+
+  /**
+   * Analyze an app and make some string suggestions as well as return a map of config settings
+   */
+  def analyzeAndSuggest(ac: AppContext, startTime: Long, endTime: Long):
+      (String, Map[String, String]) = {
+    (analyze(ac), Map.empty[String, String])
+  }
+
   def analyze(ac: AppContext): String = {
     analyze(ac, ac.appInfo.startTime, ac.appInfo.endTime)
   }
 
   def analyze(appContext: AppContext, startTime: Long, endTime: Long): String
+
+
 
   import java.text.SimpleDateFormat
   val DF = new SimpleDateFormat("hh:mm:ss:SSS")
@@ -88,7 +101,9 @@ object AppAnalyzer {
 
     list.foreach( x => {
       try {
-        val output = x.analyze(appContext)
+        val (output, suggestions) = x.analyzeAndSuggest(appContext,
+          appContext.appInfo.startTime,
+          appContext.appInfo.endTime)
         println(output)
       } catch {
         case e:Throwable => {

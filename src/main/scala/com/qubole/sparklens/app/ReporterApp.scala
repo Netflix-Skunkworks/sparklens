@@ -36,14 +36,6 @@ object ReporterApp extends App {
     }
   }
 
-  def startAnalysersFromString(json: String): Unit = {
-
-    implicit val formats = DefaultFormats
-    val map = Json4sWrapper.parse(json).extract[JValue]
-    val appContext = AppContext.getContext(map)
-    startAnalysersFromAppContext(appContext)
-  }
-
   private def startAnalysersFromAppContext(appContext: AppContext): Unit = {
     AppAnalyzer.startAnalyzers(appContext)
   }
@@ -51,7 +43,9 @@ object ReporterApp extends App {
 
   private def parseInput(): Unit = {
     getSource match {
-      case "sparklens" => reportFromSparklensDump(args(0))
+      case "sparklens" => {
+        throw new Exception("Sparklens dumps are no longer supported, please use a history file.")
+      }
       case _ =>
         getAppId match {
           case Some(appId) => // History Provider
@@ -96,19 +90,6 @@ object ReporterApp extends App {
       }
     })
     None
-  }
-
-  private def reportFromSparklensDump(file: String): Unit = {
-    val fs = FileSystem.get(new URI(file), HDFSConfigHelper.getHadoopConf(None))
-
-    val path = new Path(file)
-    val byteArray = new Array[Byte](fs.getFileStatus(path).getLen.toInt)
-    fs.open(path).readFully(byteArray)
-
-    val json = (byteArray.map(_.toChar)).mkString
-    EmailReportHelper.generateReport(json, conf)
-    startAnalysersFromString(json)
-
   }
 
   def reportFromEventHistory(file: String): Unit = {
@@ -168,9 +149,9 @@ object ReporterApp extends App {
       "SparkListenerJobStart",
       "SparkListenerJobEnd",
       "SparkListenerStageSubmitted",
-      "SparkListenerStageCompleted"
+      "SparkListenerStageCompleted",
+      "SparkListenerEnvironmentUpdate" // To get the config
     )
   }
 
 }
-

@@ -161,7 +161,8 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       jobMap,
       jobSQLExecIDMap,
       stageMap,
-      stageIDToJobID)
+      stageIDToJobID,
+      sparkConf.getAll.toMap)
 
     EmailReportHelper.generateReport(appContext.toString(), sparkConf)
     AppAnalyzer.startAnalyzers(appContext)

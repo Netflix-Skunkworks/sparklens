@@ -125,13 +125,14 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
       jobMap,
       jobSQLExecIDMap,
       stageMap,
-      stageIDToJobID)
+      stageIDToJobID,
+      sparkConf.getAll.toMap)
 
     val out = new mutable.StringBuilder()
 
     list.foreach(x => {
       try {
-        val result = x.analyze(appContext, fromTime, toTime)
+        val (result, confs) = x.analyzeAndSuggest(appContext, fromTime, toTime)
         out.append(result)
       } catch {
         case e:Throwable => {

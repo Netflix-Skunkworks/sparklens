@@ -41,25 +41,3 @@ class ExecutorTimeSpan(val executorID: String,
       executorMetrics.getMap()) ++ super.getStartEndTime()
   }
 }
-
-object ExecutorTimeSpan {
-  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[String, ExecutorTimeSpan] = {
-
-    implicit val formats = DefaultFormats
-    val map = new mutable.HashMap[String, ExecutorTimeSpan]
-
-    json.keys.map(key => {
-      val value = json.get(key).get
-      val timeSpan = new ExecutorTimeSpan(
-        (value \ "executorID").extract[String],
-        (value \ "hostID").extract[String],
-        (value \ "cores").extract[Int]
-      )
-      timeSpan.executorMetrics = AggregateMetrics.getAggregateMetrics((value
-              \ "executorMetrics").extract[JValue])
-      timeSpan.addStartEnd(value)
-      map.put(key, timeSpan)
-    })
-    map
-  }
-}

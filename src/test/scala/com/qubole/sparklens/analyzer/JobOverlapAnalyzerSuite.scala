@@ -1,4 +1,3 @@
-
 /*
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements.  See the NOTICE file distributed with
@@ -23,6 +22,8 @@ import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpa
 import com.qubole.sparklens.helper.JobOverlapHelper
 
 import org.scalatest.FunSuite
+
+import org.apache.spark.SparkConf
 
 import scala.collection.mutable
 
@@ -66,7 +67,8 @@ class JobOverlapAnalyzerSuite extends FunSuite {
       jobMap,
       jobSQLExecIDMap,
       mutable.HashMap[Int, StageTimeSpan](),
-      mutable.HashMap[Int, Long]())
+      mutable.HashMap[Int, Long](),
+      new SparkConf().getAll.toMap)
   }
 
   test("JobOverlapAnalyzerTest: Jobs running in parallel should be considered while computing " +
