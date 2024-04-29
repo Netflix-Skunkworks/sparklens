@@ -129,10 +129,12 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
       sparkConf.getAll.toMap)
 
     val out = new mutable.StringBuilder()
+    val conf: mutable.HashMap[String, String] = new mutable.HashMap()
 
     list.foreach(x => {
       try {
-        val (result, confs) = x.analyzeAndSuggest(appContext, fromTime, toTime)
+        val (result, suggestions) = x.analyzeAndSuggest(appContext, fromTime, toTime)
+        conf ++= suggestions
         out.append(result)
       } catch {
         case e:Throwable => {
@@ -141,6 +143,14 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
         }
       }
     })
+    if (!conf.isEmpty) {
+      out.append("Suggested config:\n")
+      conf.foreach { case (k , v) =>
+        out.append(k + ":" + v + "\n")
+      }
+    } else {
+      out.append("No config changes suggested")
+    }
     out.toString()
   }
 

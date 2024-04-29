@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import com.qubole.sparklens.common.AppContext
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.apache.spark.SparkConf
@@ -99,11 +100,14 @@ object AppAnalyzer {
     list += new StageSkewAnalyzer
 
 
+    val conf: mutable.HashMap[String, String] = new mutable.HashMap()
+
     list.foreach( x => {
       try {
         val (output, suggestions) = x.analyzeAndSuggest(appContext,
           appContext.appInfo.startTime,
           appContext.appInfo.endTime)
+        conf ++= suggestions
         println(output)
       } catch {
         case e:Throwable => {
@@ -112,6 +116,14 @@ object AppAnalyzer {
         }
       }
     })
+    if (!conf.isEmpty) {
+      println("Suggested config:\n")
+      conf.foreach { case (k , v) =>
+        println(k + ":" + v + "\n")
+      }
+    } else {
+      println("No config changes suggested")
+    }
   }
 
 }
