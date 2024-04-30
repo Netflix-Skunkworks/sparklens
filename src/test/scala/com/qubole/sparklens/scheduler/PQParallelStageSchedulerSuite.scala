@@ -19,12 +19,12 @@ package com.qubole.sparklens.scheduler
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class PQParallelStageSchedulerSuite extends FunSuite {
+class PQParallelStageSchedulerSuite extends AnyFunSuite {
 
 
     def createStageTimeSpan(stageID: Int, taskCount: Int, minTaskLaunchTime: Long, maxTaskFinishTime: Long, parentStages: Seq[Int]): StageTimeSpan = {

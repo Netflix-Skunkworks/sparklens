@@ -21,13 +21,13 @@ import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInf
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import com.qubole.sparklens.helper.JobOverlapHelper
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import org.apache.spark.SparkConf
 
 import scala.collection.mutable
 
-class ExecutorTimelineAnalyzerSuite extends FunSuite {
+class ExecutorTimelineAnalyzerSuite extends AnyFunSuite {
 
   val startTime = 0
   val endTime = 60000000000L

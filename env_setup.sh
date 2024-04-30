@@ -25,6 +25,15 @@ ICEBERG_FILE="iceberg-spark-runtime-${SPARK_MAJOR}_${SCALA_VERSION}-${ICEBERG_VE
 if [ ! -f "${ICEBERG_FILE}" ]; then
   wget "https://search.maven.org/remotecontent?filepath=org/apache/iceberg/iceberg-spark-runtime-${SPARK_MAJOR}_${SCALA_VERSION}/${ICEBERG_VERSION}/${ICEBERG_FILE}" -O "${ICEBERG_FILE}" &
 fi
+# See https://www.mail-archive.com/dev@spark.apache.org/msg27796.html
+BC_FILE="bcpkix-jdk15on-1.68.jar"
+BC_PROV_FILE="bcprov-jdk15on-1.68.jar"
+if [ ! -f "${BC_FILE}" ]; then
+  wget https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.68/bcpkix-jdk15on-1.68.jar
+fi
+if [ ! -f "${BC_PROV_FILE}" ]; then
+  wget https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.68/bcprov-jdk15on-1.68.jar
+fi
 wait
 sleep 1
 # Setup the env
@@ -40,6 +49,9 @@ if [ ! -f "${SPARK_PATH}/jars/${ICEBERG_FILE}" ]; then
   rm "${SPARK_PATH}/jars/iceberg-spark-runtime*.jar" || echo "No old version to delete."
   cp "${ICEBERG_FILE}" "${SPARK_PATH}/jars/${ICEBERG_FILE}"
 fi
+
+# Copy boncy castle for Kube
+cp bc*jdk*.jar ${SPARK_PATH}/jars/
 
 # Set up for running pyspark and friends
 export PATH="${SPARK_PATH}:${SPARK_PATH}/python:${SPARK_PATH}/bin:${SPARK_PATH}/sbin:${PATH}"

@@ -1,6 +1,7 @@
 package com.qubole.sparklens
 
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funsuite.AnyFunSuite
 
 import java.util.TimeZone
 import scala.io.Source
@@ -15,7 +16,7 @@ object TestUtils {
 
 }
 
-trait TimezoneSuite extends FunSuite with BeforeAndAfterAll {
+trait TimezoneSuite extends AnyFunSuite with BeforeAndAfterAll {
 
   val defaultTimeZone: TimeZone = TimeZone.getDefault
   override def beforeAll(): Unit = {
