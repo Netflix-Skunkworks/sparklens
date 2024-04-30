@@ -117,7 +117,7 @@ class PQParallelStageSchedulerSuite extends FunSuite {
             parentList.append(i)
         }
         //make the final stage
-        listBuffer.append((n, 1, n.toLong, (n + 1).toLong, parentList))
+        listBuffer.append((n, 1, n.toLong, (n + 1).toLong, parentList.toList))
         listBuffer.toList
     }
 
