@@ -64,3 +64,12 @@ distMaven/
 
 # Newt
 /.newt-cache/
+
+# Spark stuff used for e2e testing
+*.jar
+*.tgz
+data/
+spark-*-bin-hadoop*/
+derby.log
+warehouse/
+metastore_db
