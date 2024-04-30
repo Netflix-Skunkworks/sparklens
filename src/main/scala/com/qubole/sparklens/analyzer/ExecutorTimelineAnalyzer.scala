@@ -35,7 +35,10 @@ class ExecutorTimelineAnalyzer extends  AppAnalyzer {
       (String, Map[String, String]) = {
     val ac = appContext.filterByStartAndEndTime(startTime, endTime)
     val out = new mutable.StringBuilder()
-    val conf = appContext.initialSparkProperties
+    val conf = appContext.initialSparkProperties.getOrElse {
+      out.println("WARNING: No config found using empty config.")
+      Map.empty[String, String]
+    }
 
     out.println("\nPrinting executors timeline....\n")
     out.println(s"Total Executors ${ac.executorMap.size}, " +
@@ -64,6 +67,8 @@ class ExecutorTimelineAnalyzer extends  AppAnalyzer {
       })
 
     out.println("\nDone printing executors timeline...\n============================\n")
+
+    out.println(s"Config is $conf")
 
     val isDynamic = conf.getOrElse("spark.dynamicAllocation.enabled", "false").toLowerCase match {
       case "true" => true

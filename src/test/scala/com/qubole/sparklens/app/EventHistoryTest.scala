@@ -22,16 +22,16 @@ class EventHistoryFileReportingSuite extends AnyFunSuite with Matchers {
       s"/src/test/event-history-test-files/local-fresh"
 
     validateOutput(outputFromEventHistoryReport(eventHistoryFile),
-      appId = "loal-",
+      appId = "local-",
       updatedConf = Map.empty[String, String])
   }
 
-  test("Reporting from our fresh sparklens should be reasonable") {
+  test("Reporting from our dynamically scaled & fresh sparklens should be reasonable") {
     val eventHistoryFile = s"${System.getProperty("user.dir")}" +
       s"/src/test/event-history-test-files/local-fresh-dynamic"
 
     validateOutput(outputFromEventHistoryReport(eventHistoryFile),
-      appId = "kube-",
+      appId = "spark-",
       updatedConf = Map.empty[String, String],
       dynamic=true)
   }

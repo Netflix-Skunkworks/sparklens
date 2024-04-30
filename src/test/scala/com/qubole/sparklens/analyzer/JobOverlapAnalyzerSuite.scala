@@ -68,7 +68,7 @@ class JobOverlapAnalyzerSuite extends AnyFunSuite {
       jobSQLExecIDMap,
       mutable.HashMap[Int, StageTimeSpan](),
       mutable.HashMap[Int, Long](),
-      new SparkConf().getAll.toMap)
+      Some(new SparkConf().getAll.toMap))
   }
 
   test("JobOverlapAnalyzerTest: Jobs running in parallel should be considered while computing " +

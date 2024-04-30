@@ -64,7 +64,7 @@ class ExecutorTimelineAnalyzerSuite extends AnyFunSuite {
       jobSQLExecIDMap,
       mutable.HashMap[Int, StageTimeSpan](),
       mutable.HashMap[Int, Long](),
-      conf.getAll.toMap)
+      Some(conf.getAll.toMap))
   }
 
   test("A reasonable guess at initial executors") {

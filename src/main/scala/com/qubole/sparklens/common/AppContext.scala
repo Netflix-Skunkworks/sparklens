@@ -34,7 +34,7 @@ case class AppContext(appInfo:         ApplicationInfo,
                       jobSQLExecIdMap: mutable.HashMap[Long, Long],
                       stageMap:        mutable.HashMap[Int, StageTimeSpan],
                       stageIDToJobID:  mutable.HashMap[Int, Long],
-                      initialSparkProperties: Map[String, String]) {
+                      initialSparkProperties: Option[Map[String, String]]) {
 
   def filterByStartAndEndTime(startTime: Long, endTime: Long): AppContext = {
     new AppContext(appInfo,
