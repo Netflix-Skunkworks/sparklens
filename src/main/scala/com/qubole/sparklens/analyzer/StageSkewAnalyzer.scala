@@ -1,4 +1,3 @@
-
 /*
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements.  See the NOTICE file distributed with
@@ -177,14 +176,15 @@ class StageSkewAnalyzer extends  AppAnalyzer {
       }
 
 
-      val totalInput = sts.stageMetrics.map(AggregateMetrics.inputBytesRead).value + sts.stageMetrics.map(AggregateMetrics.shuffleReadBytesRead).value
-      val totalOutput = sts.stageMetrics.map(AggregateMetrics.outputBytesWritten).value+ sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value
-      val oiRatio:Float = if (totalInput == 0) {
-        0
-      }else {
-        totalOutput.toFloat/totalInput
-      }
-      out.println (f"${x}%7s ${stagePercent}%7.2f   ${pcm(totalExecutorTime)}%13s ${sts.taskExecutionTimes.length}%7s $parallelismRatio%7.2f  $taskSkew%7.2f  $taskStageSkew%7.2f  $oiRatio%7.2f     |* ${writeTimePercent}%6.2f  ${readFetchPercent}%13.2f   ${gcPercent}%6.2f  *|")
+        val totalInput = sts.stageMetrics.map(AggregateMetrics.inputBytesRead).value + sts.stageMetrics.map(AggregateMetrics.shuffleReadBytesRead).value
+        val totalOutput = (sts.stageMetrics.map(AggregateMetrics.outputBytesWritten).value
+          + sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value)
+        val oiRatio:Float = if (totalInput == 0) {
+          0
+        } else {
+          totalOutput.toFloat/totalInput
+        }
+        out.println (f"${x}%7s ${stagePercent}%7.2f   ${pcm(totalExecutorTime)}%13s ${sts.taskExecutionTimes.length}%7s $parallelismRatio%7.2f  $taskSkew%7.2f  $taskStageSkew%7.2f  $oiRatio%7.2f     |* ${writeTimePercent}%6.2f  ${readFetchPercent}%13.2f   ${gcPercent}%6.2f  *|")
 
     })
 

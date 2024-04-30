@@ -64,8 +64,12 @@ object ReporterApp extends App {
         if ("source".equalsIgnoreCase(splits(0))) {
           if ("history".equalsIgnoreCase(splits(1))) {
             return "history"
-          } else return "sparklens"
-        } else new IllegalArgumentException(usage)
+          } else {
+            return "sparklens"
+          }
+        } else {
+          new IllegalArgumentException(usage)
+        }
       }
     })
     return "sparklens"
@@ -77,7 +81,9 @@ object ReporterApp extends App {
       val splits = arg.split("=")
       if (splits.size == 2 && "appId".equalsIgnoreCase(splits(0))) {
           return Option(splits(1))
-      } else None
+      } else {
+        None
+      }
     })
     None
   }
