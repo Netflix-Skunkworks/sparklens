@@ -65,6 +65,7 @@ class EventHistoryReporter(file: String, extraConf: List[(String, String)] = Lis
     }
   }
 
+  // TODO Unify with ReporterApp
   private def getFilter(eventString: String): Boolean = {
     implicit val formats = DefaultFormats
     eventFilter.contains(Json4sWrapper.parse(eventString).extract[Map[String, Any]].get("Event")
@@ -81,7 +82,8 @@ class EventHistoryReporter(file: String, extraConf: List[(String, String)] = Lis
       "SparkListenerJobStart",
       "SparkListenerJobEnd",
       "SparkListenerStageSubmitted",
-      "SparkListenerStageCompleted"
+      "SparkListenerStageCompleted",
+      "SparkListenerEnvironmentUpdate",
     )
   }
 

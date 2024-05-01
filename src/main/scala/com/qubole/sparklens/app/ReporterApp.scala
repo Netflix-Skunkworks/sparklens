@@ -116,6 +116,7 @@ object ReporterApp extends App {
     val replayMethod = busKlass.getMethod("replay", classOf[InputStream], classOf[String],
       classOf[Boolean], classOf[(String) => Boolean])
 
+
     replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false),
       getFilter _)
   }
@@ -139,6 +140,7 @@ object ReporterApp extends App {
 
   }
 
+  // TODO Unify with EventHistoryReporter
   private def getFilter(eventString: String): Boolean = {
     implicit val formats = DefaultFormats
     eventFilter.contains(Json4sWrapper.parse(eventString).extract[Map[String, Any]].get("Event")

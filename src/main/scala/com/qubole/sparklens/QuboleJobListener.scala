@@ -131,8 +131,10 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     }
   }
 
+  override def onOtherEvent(event: SparkListenerEvent): Unit = {
+  }
+
   override def onEnvironmentUpdate(environmentUpdate: SparkListenerEnvironmentUpdate): Unit = {
-    println("Yay env update.")
     // For now we just grab the first Spark conf.
     if (jobConf == None) {
       jobConf = environmentUpdate.environmentDetails.get("Spark Properties").map(_.toMap)

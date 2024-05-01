@@ -48,10 +48,11 @@ class EventHistoryFileReportingSuite extends AnyFunSuite with Matchers {
     fileContents: String,
     appId: String,
     updatedConf: Map[String, String],
-    dynamic: Boolean = false) = {
+    dynamic: Boolean = false,
+    constantExecs: Boolean = true) = {
     fileContents should include(s"ID $appId")
-    if (dynamic) {
-      fileContents should include("i don't remember")
+    if (dynamic && constantExecs) {
+      fileContents should include("Initial execs within tolerance +-10% leaving alone")
     } else {
       fileContents should include("since not dynamic")
     }
