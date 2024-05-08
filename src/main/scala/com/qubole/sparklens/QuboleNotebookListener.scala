@@ -81,7 +81,6 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
     * @param applicationEnd
     */
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
-    stageMap.map(x => x._2).foreach(x => x.tempTaskTimes.clear())
     appInfo.endTime = applicationEnd.time
   }
 

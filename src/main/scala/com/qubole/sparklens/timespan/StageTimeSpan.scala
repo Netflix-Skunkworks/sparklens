@@ -29,9 +29,12 @@ import scala.collection.mutable
 This keeps track of data per stage
 */
 
-class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
+class StageTimeSpan(val stageID: Int, numberOfTasks: Long, val sqlTask: Boolean) extends TimeSpan {
   var stageMetrics  = new AggregateMetrics()
-  var tempTaskTimes = new mutable.ListBuffer[( Long, Long, Long)]
+  // We actually want to keep the start times so we can suggest increasing
+  // max execs if we see very different start times since that can
+  // indicate a stall.
+  var taskTimes = new mutable.ListBuffer[( Long, Long, Long)]
   var minTaskLaunchTime = Long.MaxValue
   var maxTaskFinishTime = 0L
   var parentStageIDs:Seq[Int] = null
@@ -39,6 +42,9 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
   // we keep execution time of each task
   var taskExecutionTimes  = Array.emptyIntArray
   var taskPeakMemoryUsage = Array.emptyLongArray
+
+  // Is there any shuffle read happening
+  var shuffleRead = false
 
   def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
     stageMetrics.update(taskMetrics, taskInfo)
@@ -49,13 +55,17 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
   }
 
   def updateTasks(taskInfo: TaskInfo, taskMetrics: TaskMetrics): Unit = {
-    if (taskInfo != null && taskMetrics != null) {
-      tempTaskTimes += ((taskInfo.taskId, taskMetrics.executorRunTime, taskMetrics.peakExecutionMemory))
+    // Ignore speculative tasks
+    if (taskInfo != null && taskMetrics != null && !taskInfo.speculative) {
+      taskTimes += ((taskInfo.taskId, taskMetrics.executorRunTime, taskMetrics.peakExecutionMemory))
       if (taskInfo.launchTime < minTaskLaunchTime) {
         minTaskLaunchTime = taskInfo.launchTime
       }
       if (taskInfo.finishTime > maxTaskFinishTime) {
         maxTaskFinishTime = taskInfo.finishTime
+      }
+      if (taskMetrics.shuffleReadMetrics != null) {
+        shuffleRead = true
       }
     }
   }
@@ -65,33 +75,18 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
     setStartTime(minTaskLaunchTime)
     setEndTime(maxTaskFinishTime)
 
-    taskExecutionTimes = new Array[Int](tempTaskTimes.size)
+    taskExecutionTimes = new Array[Int](taskTimes.size)
 
     var currentIndex = 0
-    tempTaskTimes.sortWith(( left, right)  => left._1 < right._1)
+    taskTimes.sortWith(( left, right)  => left._1 < right._1)
       .foreach( x => {
         taskExecutionTimes( currentIndex) = x._2.toInt
         currentIndex += 1
       })
 
-    val countPeakMemoryUsage = {
-      if (tempTaskTimes.size > 64) {
-         64
-      }else {
-        tempTaskTimes.size
-      }
-    }
-
-    taskPeakMemoryUsage = tempTaskTimes
+    taskPeakMemoryUsage = taskTimes
       .map( x => x._3)
-      .sortWith( (a, b) => a > b)
-      .take(countPeakMemoryUsage).toArray
-
-    /*
-    Clean the tempTaskTimes. We don't want to keep all this objects hanging around for
-    long time
-     */
-    tempTaskTimes.clear()
+      .sortWith( (a, b) => a > b).toArray
   }
 
   override def getMap(): Map[String, _ <: Any] = {
@@ -108,39 +103,4 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
       "taskPeakMemoryUsage" -> taskPeakMemoryUsage.mkString("[", ",", "]")
     ) ++ super.getStartEndTime()
   }
-}
-
-object StageTimeSpan {
-
-  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[Int, StageTimeSpan] = {
-    implicit val formats = DefaultFormats
-
-    val map = new mutable.HashMap[Int, StageTimeSpan]
-
-    json.keys.map(key => {
-      val value = json.get(key).get
-      val timeSpan = new StageTimeSpan(
-        (value \ "stageID").extract[Int],
-        (value  \ "numberOfTasks").extract[Long]
-      )
-      timeSpan.stageMetrics = AggregateMetrics.getAggregateMetrics((value \ "stageMetrics")
-              .extract[JValue])
-      timeSpan.minTaskLaunchTime = (value \ "minTaskLaunchTime").extract[Long]
-      timeSpan.maxTaskFinishTime = (value \ "maxTaskFinishTime").extract[Long]
-
-
-      timeSpan.parentStageIDs = Json4sWrapper.parse((value \ "parentStageIDs").extract[String]).extract[List[Int]]
-      timeSpan.taskExecutionTimes = Json4sWrapper.parse((value \ "taskExecutionTimes").extract[String])
-        .extract[List[Int]].toArray
-
-      timeSpan.taskPeakMemoryUsage = Json4sWrapper.parse((value \ "taskPeakMemoryUsage").extract[String])
-        .extract[List[Long]].toArray
-
-      timeSpan.addStartEnd(value)
-
-      map.put(key.toInt, timeSpan)
-    })
-    map
-  }
-
 }

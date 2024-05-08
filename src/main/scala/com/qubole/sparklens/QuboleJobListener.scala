@@ -223,8 +223,9 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
 
   override def onStageSubmitted(stageSubmitted: SparkListenerStageSubmitted): Unit = {
     if (!stageMap.get(stageSubmitted.stageInfo.stageId).isDefined) {
+      val isSql = stageSubmitted.stageInfo.details.contains("org.apache.spark.sql")
       val stageTimeSpan = new StageTimeSpan(stageSubmitted.stageInfo.stageId,
-        stageSubmitted.stageInfo.numTasks)
+        stageSubmitted.stageInfo.numTasks, isSql)
       stageTimeSpan.setParentStageIDs(stageSubmitted.stageInfo.parentIds)
       if (stageSubmitted.stageInfo.submissionTime.isDefined) {
         stageTimeSpan.setStartTime(stageSubmitted.stageInfo.submissionTime.get)
