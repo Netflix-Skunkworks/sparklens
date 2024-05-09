@@ -19,7 +19,7 @@ libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.13" % "
 
 libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.13" % "provided"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.17" % "test"
 libraryDependencies += "org.junit.platform" % "junit-platform-engine" % "1.6.3" % "test"
 libraryDependencies += "org.junit.platform" % "junit-platform-launcher" % "1.6.3" % "test"
 

@@ -27,54 +27,51 @@ import org.apache.spark.SparkConf
 
 import scala.collection.mutable
 
-class JobOverlapAnalyzerSuite extends AnyFunSuite {
+class ExecutorTimelineAnalyzerSuite extends AnyFunSuite {
 
+  val startTime = 0
+  val endTime = 60000000000L
   def createDummyAppContext(): AppContext = {
 
     val jobMap = new mutable.HashMap[Long, JobTimeSpan]
-    for (i <- 1 to 4) {
-      jobMap(i) = new JobTimeSpan(i)
-    }
 
     val jobSQLExecIDMap = new mutable.HashMap[Long, Long]
-    val r = scala.util.Random
-    val sqlExecutionId = r.nextInt(10000)
 
-    // Let, Job 1, 2 and 3 have same sqlExecutionId
-    jobSQLExecIDMap(1) = sqlExecutionId
-    jobSQLExecIDMap(2) = sqlExecutionId
-    jobSQLExecIDMap(3) = sqlExecutionId
-    jobSQLExecIDMap(4) = r.nextInt(10000)
+    val execStartTimes = new mutable.HashMap[String, ExecutorTimeSpan]()
 
-    // Let, Job 2 and 3 are not running in parallel, even though they have same sqlExecutionId
-    val baseTime = 1L
-    jobMap(1).setStartTime(baseTime)
-    jobMap(1).setEndTime(baseTime + 5L)
+    val appInfo = new ApplicationInfo()
+    appInfo.startTime = startTime
+    appInfo.endTime = endTime
 
-    jobMap(2).setStartTime(baseTime + 3L)
-    jobMap(2).setEndTime(baseTime + 6L)
+    val firstExec = new ExecutorTimeSpan("1", "1", 1)
+    firstExec.setStartTime(0)
+    firstExec.setEndTime(6000000)
+    execStartTimes("1") = firstExec
+    // We start an 2nd exec but exit "right away".
+    val secondExec = new ExecutorTimeSpan("2", "1", 1)
+    secondExec.setStartTime(0)
+    secondExec.setEndTime(120)
+    execStartTimes("2") = secondExec
 
-    jobMap(3).setStartTime(baseTime + 7L)
-    jobMap(3).setEndTime(baseTime + 9L)
 
-    jobMap(4).setStartTime(baseTime + 10L)
-    jobMap(4).setEndTime(baseTime + 12L)
+    val conf = new SparkConf().set("spark.dynamicAllocation.enabled", "true")
 
-    new AppContext(new ApplicationInfo(),
+    new AppContext(appInfo,
       new AggregateMetrics(),
       mutable.HashMap[String, HostTimeSpan](),
-      mutable.HashMap[String, ExecutorTimeSpan](),
+      execStartTimes,
       jobMap,
       jobSQLExecIDMap,
       mutable.HashMap[Int, StageTimeSpan](),
       mutable.HashMap[Int, Long](),
-      Some(new SparkConf().getAll.toMap))
+      Some(conf.getAll.toMap))
   }
 
-  test("JobOverlapAnalyzerTest: Jobs running in parallel should be considered while computing " +
-    "estimated time spent in Jobs") {
+  test("A reasonable guess at initial executors") {
     val ac = createDummyAppContext()
-    val jobTime = JobOverlapHelper.estimatedTimeSpentInJobs(ac)
-    assert(jobTime == 10, "Parallel Jobs are not being considered while computing the time spent in jobs")
+    val eta = new ExecutorTimelineAnalyzer()
+    val (logs, suggestions) = eta.analyzeAndSuggest(ac, startTime, endTime)
+    assert(suggestions.get("spark.dynamicAllocation.initialExecutors") == Some("1"),
+      "Initial exec suggestions")
   }
 }

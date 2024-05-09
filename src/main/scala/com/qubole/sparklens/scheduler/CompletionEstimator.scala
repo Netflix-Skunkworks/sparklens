@@ -72,7 +72,7 @@ object CompletionEstimator {
 
   private def processStages(maxStageIDs: List[Int], estate: EstimatorState,  scheduler: PQParallelStageScheduler): Long = {
     //In the worst case we need to push all stages to completion
-    val MAX_COMPLETION_TRIES = estate.stagesData.size+1
+    val MAX_COMPLETION_TRIES = estate.stagesData.size + 1
     var completionRetries = 0
     while (!maxStageIDs
         .map(scheduler.isStageComplete(_))
@@ -245,5 +245,3 @@ object CompletionEstimator {
     }).sum + driverTimeJobBased
   }
 }
-
-

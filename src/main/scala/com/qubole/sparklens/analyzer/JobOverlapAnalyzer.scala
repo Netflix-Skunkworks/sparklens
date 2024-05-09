@@ -1,4 +1,3 @@
-
 /*
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements.  See the NOTICE file distributed with
@@ -79,8 +78,9 @@ class JobOverlapAnalyzer extends  AppAnalyzer {
     })
 
     if (conflictingJobGroups.size > 0) {
-      out.println(s"Found ${conflictingJobGroups.size} overlapping JobGroups. Using threadpool for submitting parallel jobs? " +
-        s"Some calculations might not be reliable.")
+      out.println(s"Found ${conflictingJobGroups.size} overlapping JobGroups. " +
+        "These can come from Spark SQL " +
+        "Some calculations might not be reliable, we will try and improve future versions.")
       conflictingJobGroups.foreach( x => {
         out.println(s"Running with overlap:  JobGroupID ${x._1} && JobGroupID ${x._2} ")
       })
@@ -124,5 +124,3 @@ class JobOverlapAnalyzer extends  AppAnalyzer {
       })
   }
 }
-
-

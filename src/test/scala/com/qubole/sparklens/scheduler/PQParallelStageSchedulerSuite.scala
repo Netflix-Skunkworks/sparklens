@@ -19,12 +19,12 @@ package com.qubole.sparklens.scheduler
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class PQParallelStageSchedulerSuite extends FunSuite {
+class PQParallelStageSchedulerSuite extends AnyFunSuite {
 
 
     def createStageTimeSpan(stageID: Int, taskCount: Int, minTaskLaunchTime: Long, maxTaskFinishTime: Long, parentStages: Seq[Int]): StageTimeSpan = {
@@ -117,7 +117,7 @@ class PQParallelStageSchedulerSuite extends FunSuite {
             parentList.append(i)
         }
         //make the final stage
-        listBuffer.append((n, 1, n.toLong, (n + 1).toLong, parentList))
+        listBuffer.append((n, 1, n.toLong, (n + 1).toLong, parentList.toList))
         listBuffer.toList
     }
 
@@ -266,7 +266,8 @@ class PQParallelStageSchedulerSuite extends FunSuite {
             jobMap,
             jobSQLExecIDMap,
             mutable.HashMap[Int, StageTimeSpan](),
-            mutable.HashMap[Int, Long]())
+            mutable.HashMap[Int, Long](),
+            Some(Map.empty[String, String]))
 
         val time = CompletionEstimator.estimateAppWallClockTimeWithJobLists(ac, 1, 1, 3)
         assert(time === 3, s"Test failed")

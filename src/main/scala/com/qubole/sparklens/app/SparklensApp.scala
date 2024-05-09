@@ -22,11 +22,15 @@ class SparklensApp {
       }
     }
 
-    if (outCapture.toString.nonEmpty) // "yes"
+    if (outCapture.toString.nonEmpty) {
+      // "yes"
       outCapture.toString
-    else if (errCapture.toString.nonEmpty) // "NO!"
+    } else if (errCapture.toString.nonEmpty) {
+      // "NO!"
       errCapture.toString
-    else
-      throw new IllegalArgumentException(s"Failed to analyze event history for appId: $appId and attemptId: $attemptId")
+    } else {
+      throw new IllegalArgumentException(
+        s"Failed to analyze event history for appId: $appId and attemptId: $attemptId")
+    }
   }
 }

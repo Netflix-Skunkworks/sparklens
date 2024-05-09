@@ -1,9 +1,10 @@
 package com.qubole.sparklens.common
 
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, StageTimeSpan}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class AppContextSuite extends FunSuite {
+
+class AppContextSuite extends AnyFunSuite {
 
   test ("maximum concurrent executors at a time") {
 

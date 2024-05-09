@@ -48,6 +48,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
   protected val failedStages     = new ListBuffer[String]
   protected val appMetrics       = new AggregateMetrics()
+  protected var jobConf: Option[Map[String, String]] = None
 
   private def hostCount():Int = hostMap.size
 
@@ -130,6 +131,16 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     }
   }
 
+  override def onOtherEvent(event: SparkListenerEvent): Unit = {
+  }
+
+  override def onEnvironmentUpdate(environmentUpdate: SparkListenerEnvironmentUpdate): Unit = {
+    // For now we just grab the first Spark conf.
+    if (jobConf == None) {
+      jobConf = environmentUpdate.environmentDetails.get("Spark Properties").map(_.toMap)
+    }
+  }
+
   override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
     //println(s"Application ${applicationStart.appId} started at ${applicationStart.time}")
     appInfo.applicationID = applicationStart.appId.getOrElse("NA")
@@ -161,7 +172,9 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       jobMap,
       jobSQLExecIDMap,
       stageMap,
-      stageIDToJobID)
+      stageIDToJobID,
+      jobConf
+      )
 
     EmailReportHelper.generateReport(appContext.toString(), sparkConf)
     AppAnalyzer.startAnalyzers(appContext)
