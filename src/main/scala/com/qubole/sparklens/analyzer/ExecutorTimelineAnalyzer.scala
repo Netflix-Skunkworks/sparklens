@@ -1,4 +1,3 @@
-
 /*
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements.  See the NOTICE file distributed with
@@ -29,8 +28,17 @@ import scala.collection.mutable.ListBuffer
 class ExecutorTimelineAnalyzer extends  AppAnalyzer {
 
   def analyze(appContext: AppContext, startTime: Long, endTime: Long): String = {
+    analyzeAndSuggest(appContext, startTime, endTime)._1
+  }
+
+  override def analyzeAndSuggest(appContext: AppContext, startTime: Long, endTime: Long):
+      (String, Map[String, String]) = {
     val ac = appContext.filterByStartAndEndTime(startTime, endTime)
     val out = new mutable.StringBuilder()
+    val conf = appContext.initialSparkProperties.getOrElse {
+      out.println("WARNING: No config found using empty config.")
+      Map.empty[String, String]
+    }
 
     out.println("\nPrinting executors timeline....\n")
     out.println(s"Total Executors ${ac.executorMap.size}, " +
@@ -59,6 +67,52 @@ class ExecutorTimelineAnalyzer extends  AppAnalyzer {
       })
 
     out.println("\nDone printing executors timeline...\n============================\n")
-    out.toString()
+
+    out.println(s"Config is $conf")
+
+    val isDynamic = conf.getOrElse("spark.dynamicAllocation.enabled", "false").toLowerCase match {
+      case "true" => true
+      case _ => false
+    }
+    val minExec: Int = conf.getOrElse("spark.dynamicAllocation.minExecutors", "0").toInt
+    val initialExecs: Int = conf.get("spark.dynamicAllocation.initialExecutors") match {
+      case None => minExec
+      case Some(x) => x.toInt
+    }
+    // *TODO: Handle resource profiles*
+    val suggestedParams: Array[(String, String)] = {
+      // For now we don't recommend turning on dyn alloc here if not already on
+      // We also don't make any suggestions on partial analysis
+      if (!isDynamic) {
+        out.println(s"Not recommedning different initial execs since not dynamic.")
+        Array.empty[(String, String)]
+      } else if (appContext.appInfo.startTime != startTime ||
+          appContext.appInfo.endTime != endTime) {
+        out.println("Not recommending different initial execs since only doing partial analysis.")
+        Array.empty[(String, String)]
+      } else {
+        // A good number of initial execs is probably however main executors were allocated within
+        // the first 10 minutes of job & did not exit within that same time period.
+        val magicTime = startTime + 600
+        val execTimelines = ac.executorMap.values.toList
+        val goodInitialExecs = execTimelines.filter { execTimeSpan =>
+          execTimeSpan.getStartTime < magicTime &&
+          (execTimeSpan.getEndTime > magicTime || execTimeSpan.getEndTime > endTime - 600)
+        }.size
+        out.println(s"Good initial execs is $goodInitialExecs from $execTimelines")
+        // "fuzzy logic" aka -- don't change if it's close enough.
+        if (goodInitialExecs > initialExecs * 1.1 || goodInitialExecs < initialExecs * 0.9) {
+          Array(
+            ("spark.dynamicAllocation.initialExecutors", goodInitialExecs.toString)
+          )
+        } else {
+          out.println("Initial execs within tolerance +-10% leaving alone")
+          Array.empty[(String, String)]
+        }
+      }
+    }
+
+
+    (out.toString(), suggestedParams.toMap)
   }
 }

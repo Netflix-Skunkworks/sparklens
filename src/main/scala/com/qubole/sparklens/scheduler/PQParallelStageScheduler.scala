@@ -67,7 +67,7 @@ class PQParallelStageScheduler(totalCores: Int, taskCountMap: mutable.HashMap[In
     if (taskQueue.size == totalCores) {
       dequeOne()
     }
-    taskQueue.enqueue(new QueuedTask(taskTime, wallClock+taskTime, stageID))
+    taskQueue.enqueue(new QueuedTask(taskTime, wallClock + taskTime, stageID))
   }
 
 

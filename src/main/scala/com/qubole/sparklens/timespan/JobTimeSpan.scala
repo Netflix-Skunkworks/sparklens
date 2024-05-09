@@ -91,24 +91,3 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
       "stageMap" -> AppContext.getMap(stageMap)) ++ super.getStartEndTime()
   }
 }
-
-object JobTimeSpan {
-  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[Long, JobTimeSpan] = {
-    implicit val formats = DefaultFormats
-    val map = new mutable.HashMap[Long, JobTimeSpan]
-
-    json.keys.map(key => {
-      val value = json.get(key).get.extract[JValue]
-      val timeSpan = new JobTimeSpan((value \ "jobID").extract[Long])
-
-      timeSpan.jobMetrics = AggregateMetrics.getAggregateMetrics((value \ "jobMetrics")
-              .extract[JValue])
-      timeSpan.stageMap = StageTimeSpan.getTimeSpan((value \ "stageMap").extract[
-        immutable.Map[String, JValue]])
-      timeSpan.addStartEnd(value)
-      map.put(key.toLong, timeSpan)
-
-    })
-    map
-  }
-}

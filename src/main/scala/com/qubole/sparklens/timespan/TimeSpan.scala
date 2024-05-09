@@ -44,6 +44,10 @@ trait TimeSpan  {
   }
   def getMap(): Map[String, _ <: Any]
 
+  def getStartTime: Long = startTime
+
+  def getEndTime: Long = endTime
+
   def getStartEndTime(): Map[String, Long] = {
     Map("startTime" -> startTime, "endTime" -> endTime)
   }

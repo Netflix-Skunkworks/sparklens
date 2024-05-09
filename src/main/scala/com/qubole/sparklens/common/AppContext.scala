@@ -24,14 +24,17 @@ import org.json4s.MappingException
 
 import scala.collection.mutable
 
-case class AppContext(appInfo:        ApplicationInfo,
-                      appMetrics:     AggregateMetrics,
-                      hostMap:        mutable.HashMap[String, HostTimeSpan],
-                      executorMap:    mutable.HashMap[String, ExecutorTimeSpan],
-                      jobMap:         mutable.HashMap[Long, JobTimeSpan],
-                      jobSQLExecIdMap:mutable.HashMap[Long, Long],
-                      stageMap:       mutable.HashMap[Int, StageTimeSpan],
-                      stageIDToJobID: mutable.HashMap[Int, Long]) {
+import org.apache.spark.SparkConf
+
+case class AppContext(appInfo:         ApplicationInfo,
+                      appMetrics:      AggregateMetrics,
+                      hostMap:         mutable.HashMap[String, HostTimeSpan],
+                      executorMap:     mutable.HashMap[String, ExecutorTimeSpan],
+                      jobMap:          mutable.HashMap[Long, JobTimeSpan],
+                      jobSQLExecIdMap: mutable.HashMap[Long, Long],
+                      stageMap:        mutable.HashMap[Int, StageTimeSpan],
+                      stageIDToJobID:  mutable.HashMap[Int, Long],
+                      initialSparkProperties: Option[Map[String, String]]) {
 
   def filterByStartAndEndTime(startTime: Long, endTime: Long): AppContext = {
     new AppContext(appInfo,
@@ -48,7 +51,8 @@ case class AppContext(appInfo:        ApplicationInfo,
       stageMap
         .filter(x => x._2.startTime >= startTime &&
                      x._2.endTime <= endTime),
-      stageIDToJobID)
+      stageIDToJobID,
+      initialSparkProperties)
   }
 
   override def toString(): String = {
@@ -61,7 +65,8 @@ case class AppContext(appInfo:        ApplicationInfo,
       "jobMap" -> AppContext.getMap(jobMap),
       "jobSQLExecIdMap" -> jobSQLExecIdMap,
       "stageMap" -> AppContext.getMap(stageMap),
-      "stageIDToJobID" -> stageIDToJobID
+      "stageIDToJobID" -> stageIDToJobID,
+      "initialSparkConfig" -> initialSparkProperties
     )
     Serialization.writePretty(map)
   }
@@ -122,22 +127,6 @@ object AppContext {
     }
   }
 
-  def getContext(json: JValue): AppContext = {
-
-    implicit val formats = DefaultFormats
-
-    new AppContext(
-      ApplicationInfo.getObject((json \ "appInfo").extract[JValue]),
-      AggregateMetrics.getAggregateMetrics((json \ "appMetrics").extract[JValue]),
-      HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
-      ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
-      JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
-      getJobSQLExecIdMap(json, new mutable.HashMap[Long, Long]),
-      StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
-      getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]])
-    )
-}
-
   private def getJobToStageMap(json: Map[Int, JValue]): mutable.HashMap[Int, Long] = {
     implicit val formats = DefaultFormats
     val map = new mutable.HashMap[Int, Long]()
@@ -173,4 +162,3 @@ object AppContext {
     }
   }
 }
-
