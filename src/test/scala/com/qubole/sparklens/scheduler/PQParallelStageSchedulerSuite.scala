@@ -28,7 +28,7 @@ class PQParallelStageSchedulerSuite extends AnyFunSuite {
 
 
     def createStageTimeSpan(stageID: Int, taskCount: Int, minTaskLaunchTime: Long, maxTaskFinishTime: Long, parentStages: Seq[Int]): StageTimeSpan = {
-        val stageTimeSpan = new StageTimeSpan(stageID, taskCount)
+        val stageTimeSpan = new StageTimeSpan(stageID, taskCount, false)
         stageTimeSpan.minTaskLaunchTime = minTaskLaunchTime
         stageTimeSpan.maxTaskFinishTime = maxTaskFinishTime
 

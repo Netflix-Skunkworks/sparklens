@@ -34,6 +34,17 @@ class StageSkewAnalyzer extends  AppAnalyzer {
     out.toString()
   }
 
+  override def analyzeAndSuggest(appContext: AppContext, startTime: Long, endTime: Long):
+      (String, Map[String, String]) = {
+    // Only make suggestions on a "full" window
+    if (appContext.appInfo.startTime == startTime &&
+          appContext.appInfo.endTime == endTime) {
+      (analyze(appContext, startTime, endTime), computeSuggestions(appContext))
+    } else {
+      (analyze(appContext, startTime, endTime), Map.empty[String, String])
+    }
+  }
+
 
   def bytesToString(size: Long): String = {
     val TB = 1L << 40
@@ -55,7 +66,70 @@ class StageSkewAnalyzer extends  AppAnalyzer {
     "%.1f %s".formatLocal(Locale.US, value, unit)
   }
 
+  def computeSuggestions(ac: AppContext): Map[String, String] = {
+    val conf = ac.initialSparkProperties.getOrElse {
+      Map.empty[String, String]
+    }
+    var suggested = new mutable.HashMap[String, String]
+    val shufflePartitions = conf.getOrElse("spark.sql.shuffle.partitions", "200").toInt
+    val aqeCoalesce = conf.getOrElse("spark.sql.adaptive.coalescePartitions.enabled", "true")
+    // In theory if the compute time for stages is generally "large" & skew is low
+    // we can suggest increasing the parallelism especially if it's bellow max execs*
+    // For now we want to filter for stages which are
+    // SQL shuffle reads (where the shuffle.partitions config is the one we change)
+    val newScaleFactor = ac.stageMap.values.map (
+      v => {
+        val numTasks = v.taskExecutionTimes.length
+        val minTime = v.taskExecutionTimes.min
+        val maxTime = v.taskExecutionTimes.max
+        // If this is less than 10% diff between min and max (e.g. limited skew) & it's "slow"
+        // consider increasing the number of partitions.
+        // We also check that numTasks is ~= shuffle partitions
+        // otherwise it's probably being configured through AQE target size / coalesce.
+        if (minTime - maxTime < 0.1 * maxTime &&
+            v.sqlTask &&
+            Math.abs(numTasks - shufflePartitions) < 10) {
+          // Try and figure out how many tasks to add to reach ~10 minutes
+          Math.max(Math.min((minTime / 60000), 4.0), 1.0)
+        } else {
+          1.0
+        }
+      }
+    ).max
+    if (newScaleFactor > 1.0) {
+      suggested += (("spark.sql.shuffle.partitions",
+        (newScaleFactor * shufflePartitions).toInt.toString))
+    }
+
+    // Future: We might want to suggest increasing both max execs & parallelism if they're equal.
+
+    // We also may want to suggest turning of coalesce in AQE if we see "slow" stages
+    // with small data.
+    // TODO: Verify the AQE ran on that particular stage, right now we assume if we've got
+    // a shuffle read and num tasks is less than the default shuffle partitions then
+    // it's AQEs doing.
+    val problamaticCoalesces = ac.stageMap.values.find (
+      v => {
+        val minTaskLength = v.taskExecutionTimes.min
+        val numTasks = v.taskExecutionTimes.length
+        if (v.sqlTask && v.shuffleRead && numTasks < shufflePartitions &&
+          minTaskLength > 60000) {
+          true
+        } else {
+          false
+        }
+      }
+    )
+    if (! problamaticCoalesces.isEmpty) {
+      suggested += (("spark.sql.adaptive.coalescePartitions.enabled", "false"))
+    }
+    suggested.toMap
+  }
+
   def computePerStageEfficiencyStatistics(ac: AppContext, out: mutable.StringBuilder): Unit = {
+    val conf = ac.initialSparkProperties.getOrElse {
+      out.println("WARNING: No config found using empty config.")
+    }
 
 
     val totalTasks = ac.stageMap.map(x => x._2.taskExecutionTimes.length).sum
