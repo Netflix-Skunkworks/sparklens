@@ -29,7 +29,7 @@ import scala.collection.mutable
 This keeps track of data per stage
 */
 
-class StageTimeSpan(val stageID: Int, numberOfTasks: Long, val sqlTask: Boolean) extends TimeSpan {
+class StageTimeSpan(val stageID: Int, numberOfTasks: Long, val sqlTask: Boolean, val rpId: Int) extends TimeSpan {
   var stageMetrics  = new AggregateMetrics()
   // We actually want to keep the start times so we can suggest increasing
   // max execs if we see very different start times since that can
