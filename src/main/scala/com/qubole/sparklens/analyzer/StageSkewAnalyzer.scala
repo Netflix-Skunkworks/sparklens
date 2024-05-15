@@ -46,6 +46,18 @@ class StageSkewAnalyzer extends  AppAnalyzer {
   }
 
 
+  // Copied from Spark
+  def byteFromString(str: String): Long = {
+    val unit = 1L << 20 // MiB see ByteUnit.java
+    val (input, multiplier) =
+      if (str.length() > 0 && str.charAt(0) == '-') {
+        (str.substring(1), -1)
+      } else {
+        (str, 1)
+      }
+    multiplier * JavaUtils.byteStringAs(input, unit)
+  }
+
   def bytesToString(size: Long): String = {
     val TB = 1L << 40
     val GB = 1L << 30
@@ -123,7 +135,33 @@ class StageSkewAnalyzer extends  AppAnalyzer {
     if (! problamaticCoalesces.isEmpty) {
       suggested += (("spark.sql.adaptive.coalescePartitions.enabled", "false"))
     }
-    suggested.toMap
+    // Suggest decreasing the amount of executor memory if it looks like we are over allocated.
+    // https://spark.apache.org/docs/latest/configuration.html#memory-management documents the options
+    // Note: we need to careful with resource profiles here.
+    val safetyMargin = 1.2
+    val minChange = byteFromString("100M")
+    val memoryFraction = conf.getOrElse("spark.memory.fraction", "0.6").toDouble
+    val idealTargetMemories = ac.stageMap.values.map { s =>
+      val rpId = s.resourceProfileId
+      val peakMemory = s.taskPeakMemoryUsage.max
+      // This is how much we want to have for the RDDs and user objects
+      val targetUserSize = peakMemory * safetyMargin
+      val targetExecMemorySize = targetUserSize / memoryFraction
+      (rpId, targetExecMemorySize)
+    }.groupBy(_._1).mapValues(_._2.max)
+    // Go through the target memories and output if and only if we'd change the config
+    idealTargetMemories.foreach {
+      case (rpId, target) =>
+        // Resource profile zero is the general case
+        // TODO: Make recommendations for other resource profiles, maybe.
+        if (rpId == 0) {
+          val existingMemory = byteFromString(conf.getOrElse("spark.executor.memory", "2g"))
+          if (target < existingMemory - minChange) {
+            suggested += (("spark.executor.memory", bytesToString(target)))
+          }
+        }
+    }
+    suggested
   }
 
   def computePerStageEfficiencyStatistics(ac: AppContext, out: mutable.StringBuilder): Unit = {
